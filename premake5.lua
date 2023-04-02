@@ -46,10 +46,17 @@ project "DX12Sandbox"
 	
 	files 
 	{ 
+		--App
 		"%{prj.name}/Source/**.h", 
 		"%{prj.name}/Source/**.c", 
 		"%{prj.name}/Source/**.hpp", 
-		"%{prj.name}/Source/**.cpp" 
+		"%{prj.name}/Source/**.cpp",
+
+		--Engine
+		"%{prj.name}/Engine/**.h", 
+		"%{prj.name}/Engine/**.c", 
+		"%{prj.name}/Engine/**.hpp", 
+		"%{prj.name}/Engine/**.cpp" 
 	}
 	
 	includedirs 
@@ -57,6 +64,7 @@ project "DX12Sandbox"
 		"%{prj.name}/Source",
 		"%{prj.name}/3rdParty",
 		"%{prj.name}/Shaders",
+		"%{prj.name}/Engine",
 		"%{prj.name}/Textures",
 		"%{IncludeDir.ImGui}",
 	}
