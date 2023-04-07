@@ -14,6 +14,7 @@ namespace Ry_Engine
 		bool isRunning();
 
 		RECT getWindowRect();
+		HWND getWindow();
 		void setHWND(HWND hwnd);
 
 		//releases window

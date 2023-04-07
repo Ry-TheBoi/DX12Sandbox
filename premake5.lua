@@ -67,6 +67,7 @@ project "DX12Sandbox"
 		"%{prj.name}/Engine",
 		"%{prj.name}/Textures",
 		"%{IncludeDir.ImGui}",
+		"%{IncludeDir.glm}",
 	}
 
 	links

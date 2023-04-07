@@ -1,7 +1,7 @@
 #pragma once
 
-//Ryan TODO: Remind me to create a premake structure for this
 #include "Window/Window.h"
+#include "Renderer/Renderer.h"
 
 namespace Ry_Engine
 {
@@ -15,5 +15,7 @@ namespace Ry_Engine
 		virtual void onCreate() override;
 		virtual void onUpdate() override;
 		virtual void onDestroy() override;
+	private:
+		Renderer m_Renderer;
 	};
 }

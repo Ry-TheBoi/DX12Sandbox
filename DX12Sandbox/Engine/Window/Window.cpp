@@ -106,6 +106,11 @@ namespace Ry_Engine
 		return rc;
 	}
 
+	HWND Window::getWindow()
+	{
+		return m_Hwnd;
+	}
+
 	void Window::setHWND(HWND hwnd)
 	{
 		this->m_Hwnd = hwnd;
