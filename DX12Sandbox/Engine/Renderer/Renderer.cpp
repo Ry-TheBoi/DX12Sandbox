@@ -4,6 +4,7 @@
 
 namespace Ry_Engine
 {
+
 	Renderer::Renderer(HWND window, uint32_t width, uint32_t height)
 		: m_Width(width), m_Height(height)
 	{	
@@ -13,6 +14,9 @@ namespace Ry_Engine
 		InitDX12API(window);
 		LogInfo();
 		std::cout << "DirectX 12 Initialized! \n";
+
+		//Now do some more boiler code
+		InitResources();
 	}
 
 	Renderer::~Renderer()
@@ -161,13 +165,13 @@ namespace Ry_Engine
 		rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
 		rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 
-		ThrowIfFailed(m_Device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&m_renderTargetViewHeap)));
+		ThrowIfFailed(m_Device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&m_RenderTargetViewHeap)));
 
 		m_RTVDescriptorSize = m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
 		//Make frame resources
 		D3D12_CPU_DESCRIPTOR_HANDLE
-			rtvHandle(m_renderTargetViewHeap->GetCPUDescriptorHandleForHeapStart());
+			rtvHandle(m_RenderTargetViewHeap->GetCPUDescriptorHandleForHeapStart());
 
 		// Create a RTV for each frame.
 		for (UINT n = 0; n < m_BackbufferCount; n++)
@@ -238,6 +242,83 @@ namespace Ry_Engine
 	bool Renderer::Release()
 	{
 		return true;
+	}
+
+	void Renderer::InitResources()
+	{
+		//Init descriptor heap
+		D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
+		rtvHeapDesc.NumDescriptors = m_BackbufferCount;
+		rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+		rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+		ThrowIfFailed(m_Device->CreateDescriptorHeap(
+			&rtvHeapDesc, IID_PPV_ARGS(&m_RenderTargetViewHeap))); //ok that works (at least according to the debugger)
+
+		//Init Root signitures
+
+		//See if we can use version 1.1
+		D3D12_FEATURE_DATA_ROOT_SIGNATURE featureData = {};
+		featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
+
+		if (FAILED(m_Device->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE,
+			&featureData, sizeof(featureData))))
+		{
+			featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0; //Falls back to 1.0 if we can't support it
+		}
+
+		//Individial GPU resources
+		D3D12_DESCRIPTOR_RANGE1 ranges[1];
+		ranges[0].BaseShaderRegister = 0;
+		ranges[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
+		ranges[0].NumDescriptors = 1;
+		ranges[0].RegisterSpace = 0;
+		ranges[0].OffsetInDescriptorsFromTableStart = 0;
+		ranges[0].Flags = D3D12_DESCRIPTOR_RANGE_FLAG_NONE;
+
+		//GPU resource groups
+		D3D12_ROOT_PARAMETER1 rootParameters[1];
+		rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+		rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
+
+		rootParameters[0].DescriptorTable.NumDescriptorRanges = 1;
+		rootParameters[0].DescriptorTable.pDescriptorRanges = ranges;
+
+		//Resource layout
+		D3D12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
+		rootSignatureDesc.Version = D3D_ROOT_SIGNATURE_VERSION_1_1;
+		rootSignatureDesc.Desc_1_1.Flags =
+			D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+		rootSignatureDesc.Desc_1_1.NumParameters = 1;
+		rootSignatureDesc.Desc_1_1.pParameters = rootParameters;
+		rootSignatureDesc.Desc_1_1.NumStaticSamplers = 0;
+		rootSignatureDesc.Desc_1_1.pStaticSamplers = nullptr;
+
+		//Create root sig
+		ID3DBlob* rootSig;
+		ID3DBlob* error;
+		try
+		{
+			ThrowIfFailed(D3D12SerializeVersionedRootSignature(
+				&rootSignatureDesc, &rootSig, &error));
+			ThrowIfFailed(m_Device->CreateRootSignature(
+				0, rootSig->GetBufferPointer(), rootSig->GetBufferSize(),
+				IID_PPV_ARGS(&m_RootSignature)));
+			m_RootSignature->SetName(L"Triangle Root Signature");
+		}
+		catch (std::exception e)
+		{
+			const char* errStr = (const char*)error->GetBufferPointer();
+			std::cout << errStr;
+			error->Release();
+			error = nullptr;
+		}
+
+		if (rootSig)
+		{
+			rootSig->Release();
+			rootSig = nullptr;
+		}
+		//It's almost 1:30 am, I'm done for today (4/29/23)
 	}
 
 	Renderer* Renderer::Get()

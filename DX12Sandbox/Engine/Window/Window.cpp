@@ -62,7 +62,7 @@ namespace Ry_Engine
 
 		//Create window
 		m_Hwnd = ::CreateWindowEx(WS_EX_OVERLAPPEDWINDOW, L"Ry_Engine", L"Ry Engine - DirectX 12 Sandbox", WS_OVERLAPPEDWINDOW,
-			CW_USEDEFAULT, CW_USEDEFAULT, 1600, 900, NULL, NULL, NULL, this);
+			CW_USEDEFAULT, CW_USEDEFAULT, 1280, 720, NULL, NULL, NULL, this);
 
 		if (!m_Hwnd)
 			return false;

@@ -16,6 +16,9 @@ namespace Ry_Engine
 
 		bool Init();
 		bool Release();
+
+		//Resources
+		void InitResources();
 	public:
 		//DX12
 		void InitDX12API(HWND window);
@@ -53,8 +56,8 @@ namespace Ry_Engine
 		ID3D12Fence* m_Fence = nullptr;
 
 		//Swapchain
-		uint32_t m_Width = 1600;
-		uint32_t m_Height = 900;
+		uint32_t m_Width = 1280;
+		uint32_t m_Height = 720;
 
 		IDXGISwapChain3* m_Swapchain = nullptr;
 		D3D12_VIEWPORT m_Viewport;
@@ -63,9 +66,14 @@ namespace Ry_Engine
 		//Current frame handles
 		static const UINT m_BackbufferCount = 2;
 		UINT m_CurrentBuffer;
-		ID3D12DescriptorHeap* m_renderTargetViewHeap;
+
+		//Descriptor heaps (objs that handle memory allocation required for storing descriptions of objs that shaders need to reference)
+		ID3D12DescriptorHeap* m_RenderTargetViewHeap = nullptr;
 		ID3D12Resource* m_RenderTargets[m_BackbufferCount];
 		UINT m_RTVDescriptorSize;
+
+		//Root signatures: (objs that define what type of resources can be accessed by the shader (i.e constant / uniform buffers, samplers, textures, etc))
+		ID3D12RootSignature* m_RootSignature = nullptr;
 
 		//Syncs
 		UINT m_FrameIndex;
