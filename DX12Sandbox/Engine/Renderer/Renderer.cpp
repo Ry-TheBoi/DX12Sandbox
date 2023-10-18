@@ -4,7 +4,6 @@
 
 namespace Ry_Engine
 {
-
 	Renderer::Renderer(HWND window, uint32_t width, uint32_t height)
 		: m_Width(width), m_Height(height)
 	{	
@@ -43,8 +42,8 @@ namespace Ry_Engine
 
 #if defined (RYAPP_DEBUG)
 		ID3D12Debug* debugController;
-		ThrowIfFailed(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController)));
-		ThrowIfFailed(debugController->QueryInterface(IID_PPV_ARGS(&m_DebugController)));
+		ThrowIfFailedFunc(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController)), "D3D12 Debug Controller: Get Debug Interface");
+		ThrowIfFailedFunc(debugController->QueryInterface(IID_PPV_ARGS(&m_DebugController)), "D3D12 Debug Controller: Query Interface");
 		m_DebugController->EnableDebugLayer();
 		m_DebugController->SetEnableGPUBasedValidation(true);
 
@@ -82,24 +81,22 @@ namespace Ry_Engine
 
 
 		//Device Creation (finally)
-		ThrowIfFailed(D3D12CreateDevice(m_Adapter, D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&m_Device)));
+		ThrowIfFailedFunc(D3D12CreateDevice(m_Adapter, D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&m_Device)), "D3D12: Create Device");
 
 		//Debug Device
 #if defined(RYAPP_DEBUG)
-		ThrowIfFailed(m_Device->QueryInterface(&m_DebugDevice));
+		ThrowIfFailedFunc(m_Device->QueryInterface(&m_DebugDevice), "D3D12 Device: Debug Device Query Interface");
 #endif
-
 
 		//Command Queues (allowing us to send groups of draw calls "command lists"), this is where the GPU starts to do cool optimization
 		D3D12_COMMAND_QUEUE_DESC queueDesc = {};
 		queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
 		queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
 
-		ThrowIfFailed(m_Device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&m_CommandQueue)));
-
+		ThrowIfFailedFunc(m_Device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&m_CommandQueue)), "D3D12 Device: Create Command Queue");
 		
 		//Command Allocator (makes command lists to define what funcs the GPU shall execute)
-		ThrowIfFailed(m_Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_CommandAllocator)));
+		ThrowIfFailedFunc(m_Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_CommandAllocator)), "D3D12 Device: Create Command Allocator");
 		
 
 		//Fencing for GPU Syncronization (lets the engine know when tasks have been done by the GPU, uploads things to GPU VRAM)
@@ -107,7 +104,7 @@ namespace Ry_Engine
 		HANDLE fenceEvent;
 		UINT64 fenceValue;
 
-		ThrowIfFailed(m_Device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_Fence)));
+		ThrowIfFailedFunc(m_Device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_Fence)), "D3D12 Device: Create Fence");
 
 		//Swapchains! (finally)
 		//Test
@@ -148,7 +145,7 @@ namespace Ry_Engine
 			swapchainDesc.SampleDesc.Count = 1;
 
 			IDXGISwapChain1* newSwapchain;
-			ThrowIfFailed(m_Factory->CreateSwapChainForHwnd(m_CommandQueue, *m_Window, &swapchainDesc, nullptr, nullptr, &newSwapchain));
+			ThrowIfFailedFunc(m_Factory->CreateSwapChainForHwnd(m_CommandQueue, *m_Window, &swapchainDesc, nullptr, nullptr, &newSwapchain), "D3D12 Factory: Create Swap Chain For HWND");
 
 			HRESULT swapchainSupport = newSwapchain->QueryInterface(__uuidof(IDXGISwapChain3), (void**)&newSwapchain);
 
@@ -165,7 +162,7 @@ namespace Ry_Engine
 		rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
 		rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 
-		ThrowIfFailed(m_Device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&m_RenderTargetViewHeap)));
+		ThrowIfFailedFunc(m_Device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&m_RenderTargetViewHeap)), "D3D12 Device: Create Descriptor Heap");
 
 		m_RTVDescriptorSize = m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
@@ -176,7 +173,7 @@ namespace Ry_Engine
 		// Create a RTV for each frame.
 		for (UINT n = 0; n < m_BackbufferCount; n++)
 		{
-			ThrowIfFailed(m_Swapchain->GetBuffer(n, IID_PPV_ARGS(&m_RenderTargets[n])));
+			ThrowIfFailedFunc(m_Swapchain->GetBuffer(n, IID_PPV_ARGS(&m_RenderTargets[n])), "D3D12 Swapchain: Get Buffer");
 			m_Device->CreateRenderTargetView(m_RenderTargets[n], nullptr, rtvHandle);
 			rtvHandle.ptr += (1 * m_RTVDescriptorSize);
 		}
@@ -226,11 +223,15 @@ namespace Ry_Engine
 		m_Height = glm::clamp(height, 1u, 0xffffu);
 	}
 
-	inline void Renderer::ThrowIfFailed(HRESULT hr)
+	inline void Renderer::ThrowIfFailedFunc(HRESULT hr, std::string debugName)
 	{
 		if (FAILED(hr))
 		{
 			throw std::exception();
+		}
+		else
+		{
+			std::cout << "Successful pass! [" << debugName << "]" << std::endl;
 		}
 	}
 
@@ -251,8 +252,8 @@ namespace Ry_Engine
 		rtvHeapDesc.NumDescriptors = m_BackbufferCount;
 		rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
 		rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-		ThrowIfFailed(m_Device->CreateDescriptorHeap(
-			&rtvHeapDesc, IID_PPV_ARGS(&m_RenderTargetViewHeap))); //ok that works (at least according to the debugger)
+		ThrowIfFailedFunc(m_Device->CreateDescriptorHeap(
+			&rtvHeapDesc, IID_PPV_ARGS(&m_RenderTargetViewHeap)), "D3D12 Device: Create Descriptor Heap"); //ok that works (at least according to the debugger)
 
 		//Init Root signitures
 
@@ -298,11 +299,11 @@ namespace Ry_Engine
 		ID3DBlob* error;
 		try
 		{
-			ThrowIfFailed(D3D12SerializeVersionedRootSignature(
-				&rootSignatureDesc, &rootSig, &error));
-			ThrowIfFailed(m_Device->CreateRootSignature(
+			ThrowIfFailedFunc(D3D12SerializeVersionedRootSignature(
+				&rootSignatureDesc, &rootSig, &error), "D3D12: Serialize Version");
+			ThrowIfFailedFunc(m_Device->CreateRootSignature(
 				0, rootSig->GetBufferPointer(), rootSig->GetBufferSize(),
-				IID_PPV_ARGS(&m_RootSignature)));
+				IID_PPV_ARGS(&m_RootSignature)), "D3D12 Device: Create Root Signature");
 			m_RootSignature->SetName(L"Triangle Root Signature");
 		}
 		catch (std::exception e)

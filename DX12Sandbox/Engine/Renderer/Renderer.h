@@ -2,6 +2,7 @@
 #include <d3d12.h>
 #include <dxgi1_4.h>
 #include <exception>
+#include <string>
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
@@ -28,7 +29,7 @@ namespace Ry_Engine
 
 		void Resize(uint32_t width, uint32_t height);
 
-		inline void ThrowIfFailed(HRESULT hr);
+		inline void ThrowIfFailedFunc(HRESULT hr, std::string debugName);
 	public:
 		static Renderer* Get();
 	private:
