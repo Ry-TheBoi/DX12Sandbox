@@ -4,7 +4,7 @@ include "Dependencies.lua"
 workspace "DX12Sandbox"
 configurations { "Debug", "Release", "Dist" }
 	targetdir "build"
-	startproject "DX12Sandbox"
+	startproject "SandboxApp"
 
 	configurations 
 	{ 
@@ -28,51 +28,43 @@ include "Dependencies.lua"
 
 --External Dependencis Folder
 group "Dependencies"
-include "DX12Sandbox/3rdParty/ImGui"
+	include "Engine/3rdParty/ImGui"
 group ""
 
 
---Editor Premake lol
-project "DX12Sandbox"
-	location "DX12Sandbox"
-	kind "ConsoleApp"
+--Engine
+project "Engine"
+	location "Engine"
+	kind "StaticLib"
 	language "C++"
 	cppdialect "C++17"
 	staticruntime "off"
 	
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
-
 	
 	files 
 	{ 
-		--App
-		"%{prj.name}/Source/**.h", 
-		"%{prj.name}/Source/**.c", 
-		"%{prj.name}/Source/**.hpp", 
-		"%{prj.name}/Source/**.cpp",
-
 		--Engine
-		"%{prj.name}/Engine/**.h", 
-		"%{prj.name}/Engine/**.c", 
-		"%{prj.name}/Engine/**.hpp", 
-		"%{prj.name}/Engine/**.cpp" 
+		"%{prj.name}/src/**.h", 
+		"%{prj.name}/src/**.cpp" 
 	}
 	
 	includedirs 
 	{
-		"%{prj.name}/Source",
+		"src",
+
 		"%{prj.name}/3rdParty",
-		"%{prj.name}/Shaders",
-		"%{prj.name}/Engine",
-		"%{prj.name}/Textures",
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.glm}",
+
+		"%{IncludeDir.ResourceLib}"
 	}
 
 	links
 	{
 		"ImGui",
+
 		--DX12 libs
 		"d3d12.lib",
 		"dxgi.lib",
@@ -113,3 +105,90 @@ project "DX12Sandbox"
 		runtime "Release"
 		optimize "On"
 		symbols "Off"
+
+
+--ResourceLib
+project "ResourceLib"
+	location "ResourceLib"
+	kind "SharedItems"
+
+	files 
+	{ 
+		--Resources
+		"%{prj.name}/Shaders/**.hlsl", 
+		"%{prj.name}/Textures/**.png",
+		"%{prj.name}/Textures/**.jpg", 
+	}
+	
+
+--App
+project "SandboxApp"
+	location "SandboxApp"
+	kind "ConsoleApp"
+	language "C++"
+	cppdialect "C++17"
+	staticruntime "off"
+	
+	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+
+	
+	files 
+	{ 
+		--App
+		"%{prj.name}/src/**.h", 
+		"%{prj.name}/src/**.cpp" 
+	}
+	
+	includedirs 
+	{
+		"%{prj.name}/src",
+		"%{wks.location}/Engine/3rdParty",
+		"%{wks.location}/Engine/src",
+		"%{IncludeDir.ImGui}",
+		"%{IncludeDir.glm}",
+		"%{IncludeDir.ResourceLib}"
+	}
+
+	links
+	{
+		"Engine",
+	}
+	
+	filter "system:windows"
+		systemversion "latest"
+				
+		defines 
+		{ 
+			"APP_PLATFORM_WINDOWS"
+		}
+	
+	filter "configurations:Debug"
+		symbols "On"
+		runtime "Debug"
+
+		defines 
+		{
+			"RYAPP_DEBUG",
+			"RYAPP_TRACK_MEMORY"
+		}
+				
+	filter "configurations:Release"
+		defines
+		{
+			"RYAPP_RELEASE",
+			"RYAPP_TRACK_MEMORY"
+		}
+
+		runtime "Release"
+		symbols "On"
+		optimize "On"
+
+	filter "configurations:Dist"
+		defines "RYAPP_DIST"
+		runtime "Release"
+		optimize "On"
+		symbols "Off"
+		kind "WindowedApp"
+
+

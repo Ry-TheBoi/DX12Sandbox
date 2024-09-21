@@ -3,8 +3,17 @@
 bin/
 bin-int/
 
+# Log files
+*.log
+
+# Uneeded Documentation
+*.html
+*.js
+
 #Files
 *.vcxproj
 *.vcxproj.user
 *.vcxproj.filters
+*.vcxitems
+*.vcxitems.user
 *.sln
