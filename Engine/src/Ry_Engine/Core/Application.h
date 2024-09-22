@@ -5,6 +5,8 @@
 #include <memory>
 #include <functional>
 
+#include <Windows.h>
+
 namespace Ry_Engine
 {
 	class Application
@@ -21,6 +23,7 @@ namespace Ry_Engine
 		void Shutdown();
 
 	private:
+		HWND m_WindowHandle = nullptr;
 		bool m_Running = false;
 	};
 

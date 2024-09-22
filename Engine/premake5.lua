@@ -4,8 +4,11 @@ project "Engine"
 	cppdialect "C++17"
 	staticruntime "off"
 	
-	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
-	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+	targetdir ("%{wks.location}/bin/" .. outputdir .. "/%{prj.name}")
+	objdir ("%{wks.location}/bin-int/" .. outputdir .. "/%{prj.name}")
+
+	pchheader "Ry-Engine_PCH.h"
+	pchsource "src/Ry-Engine_PCH.cpp"
 	
 	files 
 	{ 
