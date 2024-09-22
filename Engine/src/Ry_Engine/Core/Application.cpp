@@ -14,10 +14,25 @@ namespace Ry_Engine
 		switch (msg){
 
 		case WM_NCCREATE: {
+			LPCREATESTRUCT param = reinterpret_cast<LPCREATESTRUCT>(lparam);
+			Application* pointer = reinterpret_cast<Application*>(param->lpCreateParams);
+			SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pointer));
 			std::cout << "Created a window!\n";
 			break;
 		}
 
+		case WM_CREATE: {
+			Application* pointer = reinterpret_cast<Application*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+			pointer->OnCreate(hwnd);
+			break;
+		}
+
+		case WM_DESTROY: {
+			Application* pointer = reinterpret_cast<Application*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+			pointer->OnDestroy();
+			PostQuitMessage(0);
+			break;
+		}
 		}
 
 		return DefWindowProc(hwnd, msg, wparam, lparam);
@@ -32,16 +47,32 @@ namespace Ry_Engine
 	Application::~Application()
 	{
 		Shutdown();
+		m_Running = false;
 		s_Instance = nullptr;
+	}
+
+	void Application::OnCreate(HWND hwnd)
+	{
+		std::cout << "Created Real Window!\n";
+	}
+
+	void Application::OnDestroy()
+	{
+		m_Running = false;
+		std::cout << "Window Closed - Terminating program\n";
 	}
 
 	void Application::Run()
 	{
-		m_Running = true;
-
 		while (m_Running)
 		{
-			std::cout << "Hello, this is a while loop message! \n";
+			MSG message;
+			while (PeekMessage(&message, 0, 0, 0, PM_REMOVE)) {
+				TranslateMessage(&message);
+				DispatchMessage(&message);
+
+			}
+			//std::cout << "Hello, this is a while loop message! \n";
 		}
 	}
 
@@ -78,6 +109,8 @@ namespace Ry_Engine
 
 		ShowWindow(m_WindowHandle, SW_SHOW);
 		UpdateWindow(m_WindowHandle);
+
+		m_Running = true;
 	}
 
 	void Application::Shutdown()

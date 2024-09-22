@@ -15,6 +15,8 @@ namespace Ry_Engine
 		Application();
 		~Application();
 
+		void OnCreate(HWND hwnd);
+		void OnDestroy();
 		void Run();
 
 		static Application& Get();
