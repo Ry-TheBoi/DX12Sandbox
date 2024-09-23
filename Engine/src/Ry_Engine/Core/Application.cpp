@@ -22,14 +22,12 @@ namespace Ry_Engine
 		}
 
 		case WM_CREATE: {
-			Application* pointer = reinterpret_cast<Application*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
-			pointer->OnCreate(hwnd);
+			Application::Get().OnCreate(hwnd);
 			break;
 		}
 
 		case WM_DESTROY: {
-			Application* pointer = reinterpret_cast<Application*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
-			pointer->OnDestroy();
+			Application::Get().OnDestroy();
 			PostQuitMessage(0);
 			break;
 		}
@@ -47,7 +45,6 @@ namespace Ry_Engine
 	Application::~Application()
 	{
 		Shutdown();
-		m_Running = false;
 		s_Instance = nullptr;
 	}
 
