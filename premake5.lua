@@ -33,5 +33,5 @@ group ""
 
 	
 include "Engine"
-include "ResourceLib"
+include "ResourceLibrary"
 include "SandboxApp"

@@ -1,4 +1,4 @@
-project "ResourceLib"
+project "ResourceLibrary"
 	kind "SharedItems"
 
 	files 
