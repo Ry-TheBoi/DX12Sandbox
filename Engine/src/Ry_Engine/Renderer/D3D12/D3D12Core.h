@@ -1,6 +1,10 @@
 #pragma once
 
 #include <d3d12.h>
+#include <dxgi1_6.h>
+#include <dxgidebug.h>
+
+#include <wrl.h> //We won't really use this for ref counting in Ry-Engine, but for this speficic program we will
 #include <map>
 #include <string>
 #include <iostream>
