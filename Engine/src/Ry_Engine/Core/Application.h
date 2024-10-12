@@ -7,6 +7,8 @@
 
 #include <Windows.h>
 
+#include "Ry_Engine/Renderer/RendererAPI.h"
+
 namespace Ry_Engine
 {
 	class Application
@@ -27,6 +29,7 @@ namespace Ry_Engine
 	private:
 		HWND m_WindowHandle = nullptr;
 		bool m_Running = false;
+		RendererAPI m_Renderer;
 	};
 
 	// Implemented by CLIENT

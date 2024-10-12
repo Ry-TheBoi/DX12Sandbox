@@ -51,6 +51,7 @@ namespace Ry_Engine
 	void Application::OnCreate(HWND hwnd)
 	{
 		std::cout << "Created Real Window!\n";
+		m_Renderer.Init(hwnd);
 	}
 
 	void Application::OnDestroy()
