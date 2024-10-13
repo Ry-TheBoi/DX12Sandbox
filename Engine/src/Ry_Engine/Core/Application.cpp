@@ -3,6 +3,8 @@
 
 #include <windowsx.h>
 
+#include "Ry_Engine/Renderer/D3D12/Debug/DXGIDebug.h"
+
 extern bool g_ApplicationRunning;
 
 static Ry_Engine::Application* s_Instance = nullptr;
@@ -57,6 +59,7 @@ namespace Ry_Engine
 	void Application::OnDestroy()
 	{
 		m_Running = false;
+		DXGIDebug::Get().GetLiveObjects();
 		std::cout << "Window Closed - Terminating program\n";
 	}
 

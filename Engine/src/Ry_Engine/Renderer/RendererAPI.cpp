@@ -3,15 +3,25 @@
 
 #include "Ry_Engine/Renderer/D3D12/D3D12Factory.h"
 #include "Ry_Engine/Renderer/D3D12/D3D12Adapter.h"
+#include "Ry_Engine/Renderer/D3D12/Debug/D3D12Debug.h"
 
 namespace Ry_Engine
 {
 	RendererAPI::~RendererAPI()
 	{
+		if (m_Device.Get())
+		{
+			m_Device.Reset();
+		}
 	}
 
 	void RendererAPI::Init(HWND hwnd)
 	{
+		//Enable debug layer if needed
+#ifdef RYAPP_DEBUG
+		D3D12Debug::Get().EnableDebug();
+#endif
+
 		//Create factory
 		D3D12Factory factory;
 

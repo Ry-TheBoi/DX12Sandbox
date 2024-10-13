@@ -35,6 +35,7 @@ project "Engine"
 		--DX12 libs
 		"d3d12.lib",
 		"dxgi.lib",
+		"dxguid.lib",
 		"dxcompiler.lib",
 	}
 	
