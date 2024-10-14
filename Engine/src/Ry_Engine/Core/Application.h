@@ -30,6 +30,9 @@ namespace Ry_Engine
 		HWND m_WindowHandle = nullptr;
 		bool m_Running = false;
 		RendererAPI m_Renderer;
+	private:
+		UINT m_Width = 1280;
+		UINT m_Height = 720;
 	};
 
 	// Implemented by CLIENT

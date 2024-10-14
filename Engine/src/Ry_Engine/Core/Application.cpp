@@ -53,12 +53,13 @@ namespace Ry_Engine
 	void Application::OnCreate(HWND hwnd)
 	{
 		std::cout << "Created Real Window!\n";
-		m_Renderer.Init(hwnd);
+		m_Renderer.Init(hwnd, m_Width, m_Height);
 	}
 
 	void Application::OnDestroy()
 	{
 		m_Running = false;
+		m_Renderer.ReleaseAll();
 		DXGIDebug::Get().GetLiveObjects();
 		std::cout << "Window Closed - Terminating program\n";
 	}
@@ -74,6 +75,8 @@ namespace Ry_Engine
 
 			}
 			//std::cout << "Hello, this is a while loop message! \n";
+			if (m_Running)
+				m_Renderer.Update();
 		}
 	}
 
@@ -100,7 +103,7 @@ namespace Ry_Engine
 		RegisterClass(&wndClass);
 
 		//Create window handle
-		m_WindowHandle = CreateWindow(L"BaseWindowClass", L"Ry Engine: D3D12 Sandbox", WS_OVERLAPPEDWINDOW, 200, 200, 1280, 720, 0, 0, 0, 0);
+		m_WindowHandle = CreateWindow(L"BaseWindowClass", L"Ry Engine: D3D12 Sandbox", WS_OVERLAPPEDWINDOW, 200, 200, m_Width, m_Height, 0, 0, 0, 0);
 
 		if (!m_WindowHandle)
 		{
