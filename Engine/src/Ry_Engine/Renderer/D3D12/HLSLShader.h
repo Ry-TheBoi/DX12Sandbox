@@ -15,8 +15,9 @@ namespace Ry_Engine {
 		~HLSLShader();
 		void Initialize(const LPCWSTR filename, const ShaderType shaderType);
 		void Release();
+		inline ID3DBlob* GetByteBlob() { return m_ByteCode; }
 
 	private:
-		ID3DBlob* mByteCode = nullptr;
+		ID3DBlob* m_ByteCode = nullptr;
 	};
 }

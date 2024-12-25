@@ -4,7 +4,6 @@
 #include "Ry_Engine/Renderer/D3D12/D3D12Factory.h"
 #include "Ry_Engine/Renderer/D3D12/D3D12Adapter.h"
 #include "Ry_Engine/Renderer/D3D12/Debug/D3D12Debug.h"
-#include "Ry_Engine/Renderer/D3D12/HLSLShader.h"
 
 #define KBs(x) 1024* (x)
 
@@ -56,6 +55,7 @@ namespace Ry_Engine
 		//Initialize Swapchain
 		m_SwapChain.Init(m_Device.Get(), factory.Get(), m_CommandQueue.Get(), hwnd, m_Width, m_Height);
 
+		//Initialize resources
 		m_DynamicVertexBuffer.Initialize(m_Device.Get(), KBs(16), D3D12_HEAP_TYPE_UPLOAD, D3D12_RESOURCE_STATE_GENERIC_READ);
 		m_DynamicVertexBuffer.Get()->SetName(L"Dynamic vertex buffer");
 		Vertex vertexData;
@@ -66,8 +66,8 @@ namespace Ry_Engine
 		memcpy(destination, &vertexData, sizeof(Vertex));
 		m_DynamicVertexBuffer->Unmap(0, 0);
 
-		HLSLShader testShader;
-		testShader.Initialize(L"../ResourceLibrary/Shaders/VS.hlsl", HLSLShader::ShaderType::VERTEX);
+		//Initialize Pipeline
+		m_Pipeline.Initialize(m_Device.Get());
 	}
 
 	void RendererAPI::Update() //Ry: Note, if this was actually in Ry-Engine, this would be wrapped under the actual API renderer abstraction (e,g: D3D12RendererAPI class ideally if implimented)

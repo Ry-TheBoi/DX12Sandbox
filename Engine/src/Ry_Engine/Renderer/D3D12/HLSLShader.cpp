@@ -28,7 +28,7 @@ namespace Ry_Engine
 		}
 		}
 		ID3DBlob* errorMsg = nullptr;
-		HRESULT result = D3DCompileFromFile(filename, 0, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", target, flags, 0, &mByteCode, &errorMsg);
+		HRESULT result = D3DCompileFromFile(filename, 0, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", target, flags, 0, &m_ByteCode, &errorMsg);
 		if (result != S_OK) {
 			std::cout << "Error in loading shader!: " << result << std::endl;
 		}
@@ -41,8 +41,8 @@ namespace Ry_Engine
 
 	void HLSLShader::Release()
 	{
-		if (mByteCode) {
-			mByteCode->Release();
+		if (m_ByteCode) {
+			m_ByteCode->Release();
 		}
 	}
 }
