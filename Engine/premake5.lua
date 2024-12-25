@@ -37,6 +37,7 @@ project "Engine"
 		"dxgi.lib",
 		"dxguid.lib",
 		"dxcompiler.lib",
+		"D3DCompiler.lib"
 	}
 	
 	filter "system:windows"

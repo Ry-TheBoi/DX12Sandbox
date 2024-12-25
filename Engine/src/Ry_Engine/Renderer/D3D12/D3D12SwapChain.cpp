@@ -84,9 +84,9 @@ namespace Ry_Engine
 	{
 		if (Get()) 
 		{
-			Reset();
 			DropBuffers();
 			m_RTVHeap.Reset();
+			Reset();
 		}
 	}
 }

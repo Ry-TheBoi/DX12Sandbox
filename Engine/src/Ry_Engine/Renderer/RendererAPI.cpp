@@ -4,9 +4,17 @@
 #include "Ry_Engine/Renderer/D3D12/D3D12Factory.h"
 #include "Ry_Engine/Renderer/D3D12/D3D12Adapter.h"
 #include "Ry_Engine/Renderer/D3D12/Debug/D3D12Debug.h"
+#include "Ry_Engine/Renderer/D3D12/HLSLShader.h"
+
+#define KBs(x) 1024* (x)
 
 namespace Ry_Engine
 {
+	struct Vertex {
+		glm::vec3 position = { 0.0f,0.0f,0.0f };
+		glm::vec4 color = { 0.0f,0.0f,0.0f,1.0f };
+	};
+
 	RendererAPI::~RendererAPI()
 	{
 		ReleaseAll();
@@ -47,6 +55,19 @@ namespace Ry_Engine
 
 		//Initialize Swapchain
 		m_SwapChain.Init(m_Device.Get(), factory.Get(), m_CommandQueue.Get(), hwnd, m_Width, m_Height);
+
+		m_DynamicVertexBuffer.Initialize(m_Device.Get(), KBs(16), D3D12_HEAP_TYPE_UPLOAD, D3D12_RESOURCE_STATE_GENERIC_READ);
+		m_DynamicVertexBuffer.Get()->SetName(L"Dynamic vertex buffer");
+		Vertex vertexData;
+		vertexData.position = { 1.0f,5.0f,3.0f };
+		vertexData.color = { 0.0f,1.0f,0.0f,1.0f };
+		void* destination = nullptr;
+		m_DynamicVertexBuffer->Map(0, 0, &destination);
+		memcpy(destination, &vertexData, sizeof(Vertex));
+		m_DynamicVertexBuffer->Unmap(0, 0);
+
+		HLSLShader testShader;
+		testShader.Initialize(L"../ResourceLibrary/Shaders/VS.hlsl", HLSLShader::ShaderType::VERTEX);
 	}
 
 	void RendererAPI::Update() //Ry: Note, if this was actually in Ry-Engine, this would be wrapped under the actual API renderer abstraction (e,g: D3D12RendererAPI class ideally if implimented)
@@ -86,6 +107,7 @@ namespace Ry_Engine
 
 	void RendererAPI::ReleaseAll()
 	{
+		m_DynamicVertexBuffer.Release();
 		m_CommandQueue.FlushQueue();
 		m_SwapChain.Release();
 		m_CommandList.Release();
