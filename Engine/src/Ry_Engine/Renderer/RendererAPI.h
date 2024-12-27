@@ -27,6 +27,9 @@ namespace Ry_Engine
 		D3D12CommandList m_CommandList;
 		D3D12SwapChain m_SwapChain;
 		D3D12Resource m_DynamicVertexBuffer;
+		D3D12_VERTEX_BUFFER_VIEW m_DynamicVBView;
+		D3D12_VIEWPORT m_Viewport;
+		D3D12_RECT m_SRRect;
 		D3D12Pipeline m_Pipeline;
 	private:
 		UINT m_Width;

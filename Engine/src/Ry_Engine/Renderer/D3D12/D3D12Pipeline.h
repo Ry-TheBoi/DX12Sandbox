@@ -12,6 +12,7 @@ namespace Ry_Engine
 		~D3D12Pipeline();
 		void Initialize(ID3D12Device* pDevice);
 		void Release();
+		inline ID3D12RootSignature* GetRootSignature() { return m_RootSignature.Get(); }
 	private:
 		D3D12RootSignature m_RootSignature;
 		HLSLShader m_Shaders[2]; //Ry: For now, a basic vertex & pixel shader

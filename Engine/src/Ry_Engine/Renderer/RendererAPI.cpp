@@ -1,6 +1,8 @@
 #include "Ry-Engine_PCH.h"
 #include "RendererAPI.h"
 
+#include <vector>
+
 #include "Ry_Engine/Renderer/D3D12/D3D12Factory.h"
 #include "Ry_Engine/Renderer/D3D12/D3D12Adapter.h"
 #include "Ry_Engine/Renderer/D3D12/Debug/D3D12Debug.h"
@@ -58,16 +60,45 @@ namespace Ry_Engine
 		//Initialize resources
 		m_DynamicVertexBuffer.Initialize(m_Device.Get(), KBs(16), D3D12_HEAP_TYPE_UPLOAD, D3D12_RESOURCE_STATE_GENERIC_READ);
 		m_DynamicVertexBuffer.Get()->SetName(L"Dynamic vertex buffer");
-		Vertex vertexData;
-		vertexData.position = { 1.0f,5.0f,3.0f };
-		vertexData.color = { 0.0f,1.0f,0.0f,1.0f };
+		
+		std::vector<Vertex> vertices;
+		for (int i = 0; i < 3; i++) {
+			Vertex vertexData;
+			vertexData.color = { 1.0f,0.15f,1.0f,1.0f };
+			if (i == 0) {
+				vertexData.position = { -.5f,-.5f,0.0f };
+			}
+			else if (i == 1) {
+				vertexData.position = { 0.0f,.5f,0.0f };
+			}
+			else {
+				vertexData.position = { .5f,-.5f,0.0f };
+			}
+			vertices.push_back(vertexData);
+		}
+
 		void* destination = nullptr;
 		m_DynamicVertexBuffer->Map(0, 0, &destination);
-		memcpy(destination, &vertexData, sizeof(Vertex));
+		memcpy(destination, vertices.data(), sizeof(Vertex) * vertices.size());
 		m_DynamicVertexBuffer->Unmap(0, 0);
+
+		m_DynamicVBView.BufferLocation = m_DynamicVertexBuffer.Get()->GetGPUVirtualAddress();
+		m_DynamicVBView.StrideInBytes = sizeof(Vertex);
+		m_DynamicVBView.SizeInBytes = KBs(16);
 
 		//Initialize Pipeline
 		m_Pipeline.Initialize(m_Device.Get());
+
+		m_Viewport.TopLeftX = 0;
+		m_Viewport.TopLeftY = 0;
+		m_Viewport.Width = m_Width;
+		m_Viewport.Height = m_Height;
+		m_Viewport.MinDepth = 0.0f;
+		m_Viewport.MaxDepth = 1.0f;
+		m_SRRect.left = 0;
+		m_SRRect.right = m_Viewport.Width;
+		m_SRRect.top = 0;
+		m_SRRect.bottom = m_Viewport.Height;
 	}
 
 	void RendererAPI::Update() //Ry: Note, if this was actually in Ry-Engine, this would be wrapped under the actual API renderer abstraction (e,g: D3D12RendererAPI class ideally if implimented)
@@ -85,6 +116,16 @@ namespace Ry_Engine
 
 		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_SwapChain.GetCurrentRTVHandle();
 		m_CommandList.GFXCmd()->ClearRenderTargetView(rtvHandle, clearColor, 0, 0);
+		m_CommandList.GFXCmd()->OMSetRenderTargets(1, &rtvHandle, false, 0);
+		m_CommandList.GFXCmd()->RSSetViewports(1, &m_Viewport);
+		m_CommandList.GFXCmd()->RSSetScissorRects(1, &m_SRRect);
+		m_CommandList.GFXCmd()->SetGraphicsRootSignature(m_Pipeline.GetRootSignature());
+		m_CommandList.GFXCmd()->SetPipelineState(m_Pipeline.Get());
+		m_CommandList.GFXCmd()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		m_CommandList.GFXCmd()->IASetVertexBuffers(0, 1, &m_DynamicVBView);
+		//TODO: draw stuff
+		m_CommandList.GFXCmd()->DrawInstanced(3, 1, 0, 0);
+
 		barrier = {};
 		barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 		barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
