@@ -11,6 +11,18 @@
 
 namespace Ry_Engine
 {
+	namespace Utils
+	{
+		UINT CalculateConstantbufferAlignment(const UINT allocation)
+		{
+			return (allocation + 255) & ~255;
+		}
+	}
+
+	struct PassData {
+		glm::mat4 viewproject = glm::mat4(1.0f);
+	};
+
 	struct Vertex {
 		glm::vec3 position = { 0.0f,0.0f,0.0f };
 		glm::vec4 color = { 0.0f,0.0f,0.0f,1.0f };
@@ -77,10 +89,12 @@ namespace Ry_Engine
 			vertices.push_back(vertexData);
 		}
 
-		void* destination = nullptr;
-		m_DynamicVertexBuffer->Map(0, 0, &destination);
-		memcpy(destination, vertices.data(), sizeof(Vertex) * vertices.size());
-		m_DynamicVertexBuffer->Unmap(0, 0);
+		//void* destination = nullptr;
+		//m_DynamicVertexBuffer->Map(0, 0, &destination);
+		//memcpy(destination, vertices.data(), sizeof(Vertex) * vertices.size());
+		//m_DynamicVertexBuffer->Unmap(0, 0);
+		//Vertex Buffer
+		memcpy(m_DynamicVertexBuffer.GetCPUMemory(), vertices.data(), sizeof(Vertex) * vertices.size());
 
 		m_DynamicVBView.BufferLocation = m_DynamicVertexBuffer.Get()->GetGPUVirtualAddress();
 		m_DynamicVBView.StrideInBytes = sizeof(Vertex);
@@ -99,10 +113,26 @@ namespace Ry_Engine
 		m_SRRect.right = m_Viewport.Width;
 		m_SRRect.top = 0;
 		m_SRRect.bottom = m_Viewport.Height;
+
+		//Define viewprojection matrix
+		glm::mat4 viewMatrix;
+		viewMatrix = glm::lookAtLH(glm::vec3(0.0f, 1.0f, -3.0f),  // Eye position
+								   glm::vec3(0.0f, 0.0f, 0.0f),   // Target position
+								   glm::vec3(0.0f, 1.0f, 0.0f));  // Up vector
+		
+		glm::mat4 projectionMatrix;
+		projectionMatrix = glm::perspectiveFov(1.2217304764f, 16.0f, 9.0f, 1.0f, 50.0f);
+
+		m_ViewProjectionMatrix = viewMatrix * projectionMatrix;
+
+		//Cam buffer
+		m_CBPassData.Initialize(m_Device.Get(), Utils::CalculateConstantbufferAlignment(sizeof(PassData)), D3D12_HEAP_TYPE_UPLOAD, D3D12_RESOURCE_STATE_GENERIC_READ);
 	}
 
 	void RendererAPI::Update() //Ry: Note, if this was actually in Ry-Engine, this would be wrapped under the actual API renderer abstraction (e,g: D3D12RendererAPI class ideally if implimented)
 	{
+		memcpy(m_CBPassData.GetCPUMemory(), &m_ViewProjectionMatrix, sizeof(PassData));
+
 		D3D12_RESOURCE_BARRIER barrier = {};
 		barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 		barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
@@ -124,6 +154,7 @@ namespace Ry_Engine
 		m_CommandList.GFXCmd()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		m_CommandList.GFXCmd()->IASetVertexBuffers(0, 1, &m_DynamicVBView);
 		//TODO: draw stuff
+		m_CommandList.GFXCmd()->SetGraphicsRootConstantBufferView(0, m_CBPassData.Get()->GetGPUVirtualAddress());
 		m_CommandList.GFXCmd()->DrawInstanced(3, 1, 0, 0);
 
 		barrier = {};

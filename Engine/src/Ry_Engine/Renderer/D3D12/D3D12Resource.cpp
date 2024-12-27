@@ -34,8 +34,20 @@ namespace Ry_Engine
 
 	void D3D12Resource::Release()
 	{
+		if (m_Memory && Get()) {
+			Get()->Unmap(0, 0);
+		}
+
 		if (Get()) {
 			Reset();
 		}
+	}
+
+	void* D3D12Resource::GetCPUMemory()
+	{
+		if (!m_Memory) {
+			Get()->Map(0, 0, &m_Memory);
+		}
+		return m_Memory;
 	}
 }

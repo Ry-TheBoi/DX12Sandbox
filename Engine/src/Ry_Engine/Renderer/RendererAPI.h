@@ -9,6 +9,8 @@
 #include "D3D12/D3D12Pipeline.h"
 
 #include "glm/glm.hpp"
+#include <glm/gtc/matrix_transform.hpp>
+
 
 namespace Ry_Engine
 {
@@ -31,6 +33,10 @@ namespace Ry_Engine
 		D3D12_VIEWPORT m_Viewport;
 		D3D12_RECT m_SRRect;
 		D3D12Pipeline m_Pipeline;
+
+		D3D12Resource m_CBPassData;
+
+		glm::mat4 m_ViewProjectionMatrix;
 	private:
 		UINT m_Width;
 		UINT m_Height;

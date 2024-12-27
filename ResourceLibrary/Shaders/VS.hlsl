@@ -1,3 +1,5 @@
+cbuffer Camera : register(b0) { matrix u_ViewProjection; }
+
 struct VertexInput
 {
     float3 position : POSITION;
